@@ -10,6 +10,4 @@ export interface Book {
   is_active: boolean;
 }
 
- export interface BooksResponse {
-  items: Book[];
-}
+ 

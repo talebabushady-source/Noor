@@ -87,11 +87,11 @@ export default function HomeScreen({ navigation }: Props) {
 
   const lastOpenedBook = books.find((b) => b.id === lastOpenedBookId);
 
-  return (
-    <ImageBackground
-      source={require('../../assets/b.jpg')}
-      style={styles.screen}
-    >
+  return (  
+     <ImageBackground 
+     source={require('../../assets/20.jpg')} 
+     style={styles.screen}> 
+     
      
     <View style={styles.screen}>
        <View style={styles.screeno}>

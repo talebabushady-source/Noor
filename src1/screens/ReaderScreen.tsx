@@ -234,7 +234,6 @@
 // button: { fontSize: 14, color: colors.gold, padding: 6, fontFamily: fonts.medium },
 // pageInfo: { fontSize: 13, color: colors.cream, fontFamily: fonts.regular },  iconText: { fontSize: 17, color: colors.gold },
 // });
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
@@ -346,8 +345,8 @@ export default function ReaderScreen({ route }: Props) {
   const nextPage = () => setPageNumber((p) => Math.min(book.page_count, p + 1));
   const prevPage = () => setPageNumber((p) => Math.max(1, p - 1));
 
-return (
-  <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+  return (
+    <View style={styles.container}>
       <StatusBar style="light" />
 
       <View style={styles.topBar}>
@@ -390,7 +389,7 @@ return (
         onClose={() => setIndexVisible(false)}
         onSelectSurah={(page) => setPageNumber(page)}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
