@@ -9,7 +9,3 @@ export interface Book {
   sort_order: number;
   is_active: boolean;
 }
-
- export interface BooksResponse {
-  items: Book[];
-}

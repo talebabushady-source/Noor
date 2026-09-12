@@ -234,6 +234,7 @@
 // button: { fontSize: 14, color: colors.gold, padding: 6, fontFamily: fonts.medium },
 // pageInfo: { fontSize: 13, color: colors.cream, fontFamily: fonts.regular },  iconText: { fontSize: 17, color: colors.gold },
 // });
+
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
@@ -260,8 +261,6 @@ export default function ReaderScreen({ route }: Props) {
   const [surahs, setSurahs] = useState<Surah[]>([]);
   const [indexVisible, setIndexVisible] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
-  const [remoteImageUrl, setRemoteImageUrl] = useState<string | null>(null);
-  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchBooks().then(async (books) => {
@@ -275,19 +274,15 @@ export default function ReaderScreen({ route }: Props) {
       const savedBookmark = await getBookmark(bookId);
       setBookmarkedPage(savedBookmark);
 
-      if (jumpToPage) {
-        setPageNumber(jumpToPage);
-      } else {
+      if (jumpToPage) setPageNumber(jumpToPage);
+      else {
         const savedPage = await getLastPage(bookId);
         if (savedPage) setPageNumber(savedPage);
       }
 
       try {
-        const indexUrl = await getIndexUrl(found);
-        if (indexUrl) {
-          const res = await fetch(indexUrl);
-          setSurahs(res.ok ? await res.json() : []);
-        }
+        const res = await fetch(getIndexUrl(found));
+        setSurahs(res.ok ? await res.json() : []);
       } catch {
         setSurahs([]);
       }
@@ -297,20 +292,6 @@ export default function ReaderScreen({ route }: Props) {
   useEffect(() => {
     saveLastPage(bookId, pageNumber);
   }, [pageNumber, bookId]);
-
-  useEffect(() => {
-    if (downloaded || !book) return;
-
-    getPageUrl(book, pageNumber)
-      .then((url) => {
-        setRemoteImageUrl(url);
-        setLoadError(null);
-      })
-      .catch((e: any) => {
-        setRemoteImageUrl(null);
-        setLoadError(e.message ?? 'تعذّر تحميل الصفحة');
-      });
-  }, [book, pageNumber, downloaded]);
 
   const toggleBookmark = async () => {
     if (bookmarkedPage === pageNumber) {
@@ -323,23 +304,11 @@ export default function ReaderScreen({ route }: Props) {
   };
 
   if (!book) {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.centerText}>جارِ التحميل...</Text>
-      </View>
-    );
+    return <View style={styles.center}><Text style={styles.centerText}>جارِ التحميل...</Text></View>;
   }
 
-  const imageUrl = downloaded ? getLocalPageUri(book.id, pageNumber) : remoteImageUrl;
-
-  if (!imageUrl) {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.centerText}>{loadError ?? 'جارِ تجهيز الصفحة...'}</Text>
-      </View>
-    );
-  }
-
+  // رابط مباشر: محلي لو محمّل، أو مباشرة من Appwrite لو أونلاين — بدون أي فك ضغط
+  const imageUrl = downloaded ? getLocalPageUri(book.id, pageNumber) : getPageUrl(book, pageNumber);
   const isBookmarked = bookmarkedPage === pageNumber;
   const isMushafMode = mode === 'mushaf';
   const nextPage = () => setPageNumber((p) => Math.min(book.page_count, p + 1));
@@ -383,12 +352,7 @@ export default function ReaderScreen({ route }: Props) {
         <Pressable onPress={nextPage}><Text style={styles.button}>التالي</Text></Pressable>
       </View>
 
-      <SurahIndexModal
-        visible={indexVisible}
-        surahs={surahs}
-        onClose={() => setIndexVisible(false)}
-        onSelectSurah={(page) => setPageNumber(page)}
-      />
+      <SurahIndexModal visible={indexVisible} surahs={surahs} onClose={() => setIndexVisible(false)} onSelectSurah={(page) => setPageNumber(page)} />
     </View>
   );
 }
@@ -396,7 +360,7 @@ export default function ReaderScreen({ route }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bgDeep },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.bgDeep },
-  centerText: { color: colors.cream, textAlign: 'center', padding: spacing.lg },
+  centerText: { color: colors.cream },
   topBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: spacing.md, paddingVertical: 10, backgroundColor: colors.bgPanel, borderBottomWidth: 1, borderBottomColor: colors.border },
   switchGroup: { flexDirection: 'row-reverse', alignItems: 'center', gap: 8 },
   switchLabel: { color: colors.cream, fontSize: 13 },
